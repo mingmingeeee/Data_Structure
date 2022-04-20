@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> // white space 문자인지 검사하는 isspace 함수를 제공
+
+#define CAPACITY 100
+#define BUFFER_SIZE 100
+
+/*
+add : 새로운 사람 추가
+
+find : 이름으로 전화번호 검색
+
+status : 현재 전화번호부에 저장된 모든 사람 출력
+
+delete : 전화번호부에서 삭제
+
+exit : 전화번호부 프로그램 종료
+*/
+
+
+char * names[CAPACITY];		/* names */
+char * numbers[CAPACITY];	/* phone numbers 051-234-6787 */
+int n = 0;					/* number of people in phone directory */
+
+void add();
+void find();
+void status();
+void remove();
+
+int main() {
+	char command[BUFFER_SIZE];
+	while (1) {
+		printf("$ ");
+		scanf("%s", command);
+
+		if (strcmp(command, "add") == 0) // strcmp함수는 두 문자열이 동일하면 0을 반환한다.
+			add();
+		else if (strcmp(command, "find") == 0)
+			find();
+		else if (strcmp(command, "status") == 0)
+			status();
+		else if (strcmp(command, "delete") == 0)
+			remove();
+		else if (strcmp(command, "exit") == 0)
+			break;
+	}
+	return 0;
+}
+
+void add() {
+	char buf1[BUFFER_SIZE], buf2[BUFFER_SIZE];
+	scanf("%s", buf1);
+	scanf("%s", buf2);
+
+	names[n] = strdup(buf1);
+	numbers[n] = strdup(buf2);
+	n++;
+
+	printf("%s was added successfully.\n", buf1);
+
+	// buf1 과 buf2 는 지역 변수임 ... liftime 은 함수의 그 lifetime과 같음
+	// 이 지역변수들이 사라져버리기 전에 복사해서 strdup가 리턴해주는 주소를 전역변수에 저장해야 하기 때문에
+	// strdup를 사용함 !!!!
+
+	// 스택에 할당된 메모리 : 지역 변수
+	// data section : 전역 변수
+	// malloc - heap : 동적 메모리 할당 free()함수 호출하여 반환하지 않는 한 계속 유지됨
+	// -> 한 함수에서 생성하고, 그 함수에서 벗어나도 됨 -> 그 함수에 국한 되지 않음 !!
+}
+
+void find() {
+	char buf[BUFFER_SIZE];
+	scanf("%s", buf);
+
+	int i;
+	for (i = 0; i < n; i++) {
+		if (strcmp(buf, names[i]) == 0) {
+			printf("%s\n", numbers[i]);
+			return;
+		}
+	}
+	printf("No person named '%s' exists.\n", buf);
+}
+
+
+void status() {
+	int i;
+	for (i = 0; i < n; i++)
+		printf("%s	%s\n", names[i], numbers[i]);
+	printf("Total %d persons/ \n", n);
+}
+
+void remove() {
+	char buf[BUFFER_SIZE];
+	scanf("%s", buf);
+
+	int i;
+	for (i = 0; i < n; i++) {
+		if (strcmp(buf, names[i]) == 0) { //string compare : strcmp
+			names[i] = names[n - 1];
+			numbers[i] = numbers[n - 1];
+			n--;
+			printf("'%s'was deleted successfully. \n", buf);
+			return;
+			// 맨 마지막 사람을 그 자리로 옮겨옴
+		}
+	}
+	printf("No person named '%s' exists.\n", buf);
+}

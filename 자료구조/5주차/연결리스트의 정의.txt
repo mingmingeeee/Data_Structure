@@ -1,0 +1,50 @@
+/*하나의 노드 안에 적어도 두개 이상의 멤버들이 있는 거니까 자료구조로 정의해준다.*/
+
+
+// 각 노드에 저장될 데이터는 하나의 문자열이라고 가정한다.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct node {
+	char *data; // 데이터
+
+	struct node *next; // 다음의 주소 -> 자기참조형 구조체
+};
+
+typedef struct node Node;
+Node *head = NULL; // 연결리스트의 첫 번째 노드의 주소를 저장할 포인터.
+
+// 배열처럼 미리 만들어놓는 게 아니라
+// 노드가 필요할 때 노드를 하나 하나 만들어서 연결리스트에 추가하는 식으로 한다
+
+int main()
+{
+	head = (Node *)malloc(sizeof(Node));
+	// 첫번째 노드 만들기 -> head가 첫번째 노드 가리키기
+	head->data = "Tuesday";
+	head->next = NULL;
+
+	Node *q = (Node *)malloc(sizeof(Node));
+	q->data = "Thursday";
+	q->next = NULL;
+	head->next = q;
+	// q는 임무를 다 했다
+
+	// Tuesday 앞에 Monday를 만들어 보기
+	
+	q = (Node *)malloc(sizeof(Node)); // q 재활용해서 새로운 노드 만들기
+	q->data = "Monday";
+	q->next = head;
+	head = q; // head의 임무는 첫번째를 가리키는 것이다. 그러므로 head가 q를 가리키게 한다 !!! 
+
+	// q는 임무를 다 했다
+
+	Node *p = head;
+	while (p != NULL) {
+		printf("%s\n", p->data);
+		p = p->next; // !!!!!!!!!! 중요 !!!!!!!!!!
+	}
+
+}

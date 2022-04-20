@@ -1,0 +1,53 @@
+<< strtok 예시 1 >>
+
+#include <stdio.h>
+#include <string.h>
+
+// tokenizing -> strtok를 이용한 문자열 짜르기
+
+int main() {
+
+	char str[] = "now # is the time # to start preparing ### for the exam#";
+	char delim[] = "#"; 
+	// 하나의 문자 안에 구분자를 넣음 -> string으로 주어짐
+	char *token;
+
+	token = strtok(str, delim);
+			  //  매개변수, delimeter로 사용할 문자
+		      //  strtok 의 리턴값 : delim으로 토크나이징 했을 때의 첫번째 토큰
+	while (token != NULL) { 
+		// 리턴값이 NULL 이 아닌 동안
+		printf("next token is: %s:%d\n", token, strlen(token)); 
+		token = strtok(NULL, delim);
+			//  두번째에는 첫번째 매개변수가 NULL이 됨.
+			//  두번째 토큰의 시작점을 리턴해줌
+	}
+
+}
+
+
+<< strtok 예시 2 >>
+
+#include <stdio.h>
+#include <string.h>
+
+// tokenizing -> strtok를 이용한 문자열 짜르기
+
+int main() {
+
+	char str[] = "    study hard,      or   sleep.      ";
+	char delim[] = " ";
+	char *token;
+
+	token = strtok(str, delim);
+
+	while (token != NULL) {
+		printf("next token is: %s:%d\n", token, strlen(token));
+		token = strtok(NULL, delim);
+	}
+	// 토큰은 그 토큰이 끝나는 위치에 널 문자를 넣어준다.
+	// 토큰은 그 토큰이 끝나는 위치에 널 문자를 넣어준다.
+	// 원본 문자열을 변화시킨다. 
+	// 스트링 리터럴: (* str에다가, "    ") 는 수정이 불가, 배열은 수정 가능
+	// 새로운 배열을 생성하지는 않음
+}

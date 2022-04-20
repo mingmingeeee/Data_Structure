@@ -1,0 +1,553 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define MAX_POLYS 50
+#define BUFFER_LENGTH 50
+
+/*
+1. 원 다항식을 정의할 수 있다. 다항식의 이름은 x를 제외한 영문 소문자이다.
+2. 변수는 항상 x이다.
+3. 각 항의 지수는 음이아닌 정수이고, 계수는 정수이다.
+4. =,+,- 등의 앞뒤로 하나 이상의 공백이 있을 수도 있고 없을 수도 있다.
+5. 항들이 반드시 차수에 대해 내림차순으로 이력되는 것은 아니며,
+동일 차수의 항이 여럿 있을 수도 있다.
+6. 함수는 항상 차수에 대한 내림차순으로 정렬되어 저장되고 출력되어야 한다.
+7. 동일 이름의 함수를 새로 정의할 수 도 있다. 이 경우 기존의 함수는 지워진다.
+*/
+
+/*하나의 다항식을 리스트로 생각 -> 연결리스트 사용*/
+
+/*name: 항의 이름, size: 항의 개수*/
+/*Polynomal: 시작 주소*/
+/*term: 다항식*/
+
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+/*printall 함수 */ // ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+struct term {
+	int coef;
+	int expo;
+	struct term *next;
+};
+
+typedef struct term Term;
+
+typedef struct polynomial {	// 항의 정보를 저장하고 있음
+	char name;		// 항의 이름
+	Term *first;	// 첫번째 주소
+	int size = 0;	// 다항식의 개수
+}Polynomial;
+
+Polynomial *polys[MAX_POLYS];	// polys는 다항식들에 대한 포인터의 배열이다.
+// 여러개의 다항식의 집합 리스트 (그의 첫 주소를 가리킴)
+int n = 0;	// 저장된 다항식의 개수
+
+Term *create_term_instance();
+Polynomial *create_polynomial_instance(char name);
+void add_term(int c, int e, Polynomial *poly);
+int eval1(Polynomial *poly, int x);
+int eval2(Term *term, int x);
+void print_poly(Polynomial *p);
+void process_command();
+void print_term(Term* pTerm);
+int read_line(FILE * fp, char str[], int n);
+void handle_print(char name);
+void handle_calc(char name, char *x_str);
+Polynomial *create_by_parse_polynomial(char name, char *body);
+void erase_blanks(char *expression);
+int parse_and_add_term(char *expr, int begin, int end, Polynomial *p_poly);
+void insert_polynomial(Polynomial *ptr_poly);
+void destroy_polynomial(Polynomial *ptr_poly);
+Polynomial *create_by_add_two_polynomials(char name, char f, char g);
+void handle_definition(char *expression);
+void printall();
+polynomial *create_by_mult_two_polynomials(char name, char f, char g);
+
+void printall() {
+	for (int i = 0; i < n; i++) {
+		print_poly(polys[i]);
+		printf("\n");
+	}
+}
+
+Term *create_term_instance() {
+	Term *t = (Term *)malloc(sizeof(Term));
+	// 구조체 객체 만들면 제일 먼저 해야할 일 : 안의 요소들을 초기화시켜줌
+	t->coef = 0;
+	t->expo = 0;
+	return t;
+}
+
+Polynomial *create_polynomial_instance(char name) {
+	// 만들 시점에 이름 정해줌
+	Polynomial *ptr_poly = (Polynomial *)malloc(sizeof(Polynomial));
+	ptr_poly->name = name;
+	ptr_poly->size = 0;
+	ptr_poly->first = NULL;
+	return ptr_poly;
+}
+
+void add_term(int c, int e, Polynomial *poly) {
+	// poly가 가리키는 다항식에 새로운 항 (c,e)를 추가하는 경우
+	// = cx^e
+	// 같은 차수: 더함
+	// 새로운 항 삽입: 내림차순으로 정렬
+
+	if (c == 0) // 계수가 0라면 항은 존재 X이므로 return
+		return;
+	Term *p = poly->first, *q = NULL;
+	// p는 first
+	// q= p의 이전 주소
+	while (p != NULL && p->expo > e) {
+		// 내가 새로 삽입하려는 것보다 큰 게 나올 때 까지
+		q = p; // 결과적으로는 next 이전을 가리키게 함
+		p = p->next; // 전진하기 이전에 next를 가리키게 함
+	}
+	if (p != NULL && p->expo == e) { // 동일 차수의 항이 존재하는 경우
+		p->coef += c;
+		if (p->coef == 0) { // 더했더니 계수가 0이 되는 경우
+			if (q == NULL) // 애초에 얘가 첫번째 노드라면 첫번째 노드를 삭제해야 하는 상황
+				poly->first = p->next;
+			// q의 다음 노드 삭제. 단, q가 NULL이면 첫번째 노드 삭제
+			else
+				q->next = p->next;
+			poly->size--;
+			free(p); // 불필요해진 노드 p free
+		}
+		return;
+	}
+	Term *term = create_term_instance(); // 여기까지 왔다면 새로운 항을 더한다는 것
+
+	term->coef = c;
+	term->expo = e;
+	if (q == NULL) {
+		term->next = poly->first;
+		poly->first = term;
+	}
+	else {
+		term->next = p;
+		q->next = term;
+	}
+	poly->size++;
+}
+
+int eval1(Polynomial *poly, int x) { // 다항식의 값을 계산하는 함수 -> 다항식과 변수 x의 값을 주는 것
+	int result = 0;
+	Term *t = poly->first;
+	while (t != NULL) {
+		result += eval2(t, x); // 각각의 항의 값을 계산하여 더한다.
+		t = t->next;
+	}
+	return result;
+}
+
+int eval2(Term *term, int x) { // 하나의 항의 값을 계산하는 함수
+	int result = term->coef; // coef: 계수
+	for (int i = 0; i < term->expo; i++) { // expo: 지수
+		result *= x;
+	}
+	return result;
+}
+
+// ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+void print_poly(Polynomial *p) { // 하나의 다항식 출력
+	printf("%c=", p->name);
+	Term *t = p->first;
+	while (t != NULL) {
+		print_term(t); // 하나의 항 출력하는 함수
+		t = t->next;
+	}
+}
+/*
+해야할 것 ::: f=2x^2-x+10이 되도록
+x^1을 잡아줘야 함
+*/
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+// ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+void print_term(Term* pTerm) { // 하나의 항 출력
+	if (pTerm->expo == 0)
+		printf("%d", pTerm->coef);
+	else if (pTerm->expo == 1) {
+		if (pTerm->coef != 1 && pTerm->coef != -1)
+			printf("%d", pTerm->coef);
+		else if (pTerm->coef == -1) printf("-");
+		printf("x");
+	}
+	else {
+		if (pTerm->coef != 1 && pTerm->coef != -1)
+			printf("%d", pTerm->coef);
+		else if (pTerm->coef == -1) printf("-");
+		printf("x^%d", pTerm->expo);
+	}
+	if (pTerm->next != NULL && pTerm->next->coef > 0)
+		printf("+");
+}
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+void process_command() {
+	char command_line[BUFFER_LENGTH];
+	char copied[BUFFER_LENGTH];
+	char *command, *arg1, *arg2;
+
+	while (1) {
+		printf("$ ");
+		if (read_line(stdin, command_line, BUFFER_LENGTH) <= 0)
+			continue;
+		strcpy(copied, command_line); // 입력 라인을 복사해 둔다.
+		command = strtok(command_line, " ");
+		if (strcmp(command, "print") == 0) {
+			arg1 = strtok(NULL, " ");
+			if (arg1 == NULL) {
+				printf("Invalid arguments.\n");
+				continue;
+			}
+			handle_print(arg1[0]); // 함수 이름은 어차피 한 자 이기 때문
+		}
+
+		else if (strcmp(command, "printall") == 0) {
+			printall();
+		}
+
+		else if (strcmp(command, "calc") == 0) {
+			arg1 = strtok(NULL, " ");
+			if (arg1 == NULL) {
+				printf("Invalid arguments.\n");
+				continue;
+			}
+			arg2 = strtok(NULL, " ");
+			if (arg2 == NULL) {
+				printf("Invalid arguments.\n");
+				continue;
+			}
+			handle_calc(arg1[0], arg2); // 함수이름 / x값 -> atoi를 사용하여 숫자 변환해도 됨
+		}
+
+		else if (strcmp(command, "exit") == 0)
+			break;
+		else {
+			handle_definition(copied); // 새로운 함수를 정의하는 것
+		}
+	}
+}
+
+int read_line(FILE * fp, char str[], int n) {
+	// datafile로부터 load할 때 한 라인 단위로 읽은 다음에 
+	// #으로 토크나이징 할 것
+	// 키보드만이 아니라 파일로부터도 읽을 수 있도록
+	// FILE 포인터 : datafile로부터 읽을 건지 아니면 키보드로부터 읽을 건지
+	int ch, i = 0;
+
+	while ((ch = fgetc(fp)) != '\n'&&ch != EOF) // fgetc : file로부터 읽은 것 + file의 마지막에는 줄바꿈이 없으므로 EOF이기 전까지 읽어라! 라는 조건을 추가해줌
+		if (i < n)
+			str[i++] = ch;
+
+	str[i] = '\0';
+	return i;
+}
+
+// ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+void handle_print(char name) {
+	// 받은 함수 출력
+	// print_poly , print_term 사용
+	for (int i = 0; i < n; i++) {
+		if (polys[i]->name == name)
+			print_poly(polys[i]);
+	}
+	printf("\n");
+}
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+// ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+void handle_calc(char name, char *x_str) {
+	// 함수값 계산 -> eval 사용
+	int c = atoi(x_str);
+	for (int i = 0; i < n; i++)
+		if (polys[i]->name == name) {
+			int result = eval1(polys[i], c);
+			printf("result = %d\n", result);
+			return;
+		}
+}
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+void handle_definition(char *expression) {
+	erase_blanks(expression); // 공백이 있을 수도 있고 없을 수도 있다면 그냥 차라리 공백을 먼저 지워버리자
+
+	char *f_name = strtok(expression, "=");
+	if (f_name == NULL || strlen(f_name) != 1) { // 이름이 없거나 한 글자가 아니라면
+		printf("Unsupported command.");
+		return;
+	}
+
+	char *exp_body = strtok(NULL, "=");
+	if (exp_body == NULL || strlen(exp_body) <= 0) {
+		// 몸체가 없거나 1 이하라면
+		printf("Invalid expression format.--");
+		return;
+	}
+
+	// 기존의 함수를 더하는 거냐??? 아니면 새로운 함수를 정의하는 거냐???
+
+	// 기존 함수의 합
+	if (exp_body[0] >= 'a'&&exp_body[0] <= 'z'&&exp_body[0] != 'x') {
+		char *former = strtok(exp_body, "+");
+		if (former == NULL || strlen(former) != 1) {
+			former = strtok(exp_body, "*");
+			if (former == NULL || strlen(former) != 1) {
+					printf("Invalid expression fromat.2");
+				return;
+			}
+			char *later = strtok(NULL, "*");
+			if (later == NULL || strlen(later) != 1) {
+				printf("Invalid expression format.3");
+				return;
+			}
+			Polynomial *pol1 = create_by_mult_two_polynomials(f_name[0], former[0], later[0]);
+			if (pol1 == NULL) {
+				printf("Invalid expression format.4");
+				return;
+			}
+			insert_polynomial(pol1);
+			return;
+		}
+		char *later = strtok(NULL, "+");
+		if (later == NULL || strlen(later) != 1) {
+			printf("Invalid expression format.5");
+			return;
+		}
+
+		// 두 다항식 더해서 새로운 다항식 만들기
+		// 만약 g라는 다항식 자체가 정의되어 있지 않다면 NULL을 리턴해 주는 것으로 가정함
+		Polynomial *pol = create_by_add_two_polynomials(f_name[0], former[0], later[0]);
+		if (pol == NULL) {
+			printf("Invalid expression format.6");
+			return;
+		}
+		insert_polynomial(pol);
+		// polys에 달려있는 다항식에 더 추가함
+		// 만약 있는 거면 바꿔줌 
+	}
+
+	// 새로 정의하는 함수
+	else {
+		Polynomial *pol = create_by_parse_polynomial(f_name[0], exp_body);
+		// 새로운 다항식 만들기
+
+		// 문법적으로 잘못된 부분이 있다면 NULL 리턴해주기
+		if (pol == NULL) {
+			printf("Invalid expression format.");
+			return;
+		}
+		insert_polynomial(pol);
+	}
+}
+
+Polynomial *create_by_parse_polynomial(char name, char *body) {
+	// name: 새로 정의할 함수의 이름
+	// body: 왼쪽 편 
+	Polynomial *ptr_poly = create_polynomial_instance(name);
+
+	int i = 0, begin_term = 0;
+	// body의 첫번째부터 읽기
+	// begin_term: 항 단위로 자를 것 
+	// 이 항들의 시작은 -,+로 시작된다
+	while (i < strlen(body)) {
+		// 맨앞에 있는 거를 읽고 넘어가는 것 
+		if (body[i] == '+' || body[i] == '-')
+			i++;
+
+		// -,+ 의 앞 까지가 하나의 항이다. or 그의 끝까지
+		while (i < strlen(body) && body[i] != '+'&&body[i] != '-')
+			i++;
+
+		// [begin_term,i) -> begin_term 에서 시작해서 i보다 작은 구간
+		// = begin_term <= ~~ < i
+
+		// 문자열 body에서 begin_term번째부터 i-1까지 짤라서 항을 만든 다음에
+		// ptr_poly가 가리키는 방정식에 저장하라
+		int result = parse_and_add_term(body, begin_term, i, ptr_poly);
+		// 만약 수식자체가 잘못되어서 저장이 잘못되는 경우
+		// return 0, 아니면 return 1;
+
+		if (result == 0) {
+			destroy_polynomial(ptr_poly);
+			return NULL;
+			// 만약 잘못 되었다면 아까 만들어준 ptr_poly (free) 시켜주기
+		}
+		begin_term = i; // 다음 항의 시작 위치는 i가 된다.
+	}
+	return ptr_poly; // 다항식의 주소 return
+}
+
+// ㅇㅇ
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+void erase_blanks(char *expression) {
+	int count = 0;
+	for (int i = 0; i <= strlen(expression); i++) {
+		if (expression[i] != ' ') {
+			expression[count++] = expression[i];
+		}
+	}
+	expression[count] = '\0';
+	// 공백 없애고 문자들을 압축하긔 ~!~!~!~!
+	// 문자열의 끝에 '\0' 추가해주긔 ~!~!~!~!
+}
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+int parse_and_add_term(char *expr, int begin, int end, Polynomial *p_poly) {
+	int i = begin;
+	int sign_coef = 1, coef = 0, expo = 1;
+	// sign_coef : 계수의 부호
+
+	if (expr[i] == '+')
+		i++;
+	else if (expr[i] == '-') {
+		sign_coef = -1;
+		// 부호가 음수라는 것을 기억해둠
+		i++;
+	}
+	// 첫 번째 항의 경우에는 부호 없이 나올 수도 있다...
+	// 그러한 경우를 염두에 두어야 한다.
+
+
+	// 부호를 지나가서 계수의 절대값을 읽는 부분
+	// 절대값 없이 -x^2
+	while (i < end && expr[i] >= '0'&&expr[i] <= '9') {
+		coef = coef * 10 + (int)(expr[i] - '0');
+		i++;
+	}
+
+	// 계수 부분 인식 -> sign을 곱한 것이 실제 계수이다 !!!
+	if (coef == 0)
+		coef = sign_coef;
+	// 앞에 아무것도 없기 때문에 while을 돌지 않고,
+	// 그렇기 때문에 coef는 0으로 남게 된다.
+	// 이 것은 x로, 계수가 1이거나 -1일 때를 뜻한다 !!!
+
+	else
+		coef *= sign_coef;
+
+	// 계수 부분만 읽었는데 end가 끝나버렸다면
+	// 계수 부분만 있다는 뜻 !!!!
+	// == 상수항이라는 뜻
+	if (i >= end) {
+		add_term(coef, 0, p_poly);
+		return 1;
+	}
+
+	// 다음에 x가 아닌 다른 문자가 등장해서는 안되기 때문에
+	// 만약 등장한다면 return 0; 해서 끝내버린다.
+	if (expr[i] != 'x')
+		return 0;
+	i++;
+
+	// 5x로 종료될 수 있다
+	// 이 뜻은 곧... 차수는 1이라는 얘기 !!!
+	if (i >= end) {
+		add_term(coef, 1, p_poly);
+		return 1;
+	}
+
+	// 아직도 끝이 아니다 !!! ^아니라면 종료
+	if (expr[i] != '^')
+		return 0;
+	i++;
+
+	// 지수 부분 으로 와라 !!!
+	expo = 0;
+	while (i < end&&expr[i] >= '0'&&expr[i] <= '9') {
+		expo = expo * 10 + (int)(expr[i] - '0');
+		i++;
+	}
+	add_term(coef, expo, p_poly);
+	return 1;
+}
+
+void insert_polynomial(Polynomial *ptr_poly) {
+	for (int i = 0; i < n; i++) {
+		if (polys[i]->name == ptr_poly->name) {
+			destroy_polynomial(polys[i]);
+			// 다항식을 덮어쓸 경우에는 기존의 다항식 객체를 free시켜주어야 한다.
+			polys[i] = ptr_poly;
+			return;
+		}
+	}
+	polys[n++] = ptr_poly;
+}
+
+void destroy_polynomial(Polynomial *ptr_poly) {
+	if (ptr_poly == NULL)
+		return;
+	Term *t = ptr_poly->first, *tmp;
+	// first를 포함한 모든 노드들을 free시켜주어야함
+
+	while (t != NULL) {
+		tmp = t;
+		t = t->next;
+		free(tmp);
+		// 먼저 전진하고 삭제함 !!
+		// 삭제해버리면 전진할 방법이 없기 때문에 !!!! 
+	}
+	free(ptr_poly);
+}
+
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+polynomial *create_by_add_two_polynomials(char name, char f, char g) {
+	// 두 개의 함수 더하는 것
+	// 새로운 다항식을 만들고, 순서대로 add 시켜주기
+	// add_term 이용
+	// 각각을 add_term 해주면 된답
+	// 새로운 empty 다항식을 만든 후 두 다항식의 모든 항들을 add 해주기
+	Polynomial *empty = create_polynomial_instance(name);
+	Term *p1, *p2;
+	for (int i = 0; i < n; i++) {
+		if (polys[i]->name == f)
+			p2 = polys[i]->first;
+		if (polys[i]->name == g)
+			p1 = polys[i]->first;
+	}
+	while (p2 != NULL) {
+		add_term(p2->coef, p2->expo, empty);
+		p2 = p2->next;
+	}
+	while (p1 != NULL) {
+		add_term(p1->coef, p1->expo, empty);
+		p1 = p1->next;
+	}
+	return empty;
+}
+/*★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+
+polynomial *create_by_mult_two_polynomials(char name, char f, char g) {
+	Polynomial *empty = create_polynomial_instance(name);
+	Polynomial *p1, *p2;
+	for (int i = 0; i < n; i++) {
+		if (polys[i]->name == f)
+			p1 = polys[i];
+		if (polys[i]->name == g)
+			p2 = polys[i];
+	}
+	Term *P1, *P2;
+	P1 = p1->first;
+	while(P1!=NULL) {
+		P2 = p2->first;
+		while(P2!=NULL) {
+			int c = P2->coef * P1->coef;
+			int e = P2->expo + P1->expo;
+			add_term(c, e, empty);
+			P2 = P2->next;
+		}
+		P1 = P1->next;
+	}
+	return empty;
+}
+
+int main() {
+	process_command();
+}

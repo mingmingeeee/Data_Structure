@@ -1,0 +1,108 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define BUFFER_SIZE 50
+
+// 길이 2이하, ignore 단어 무시 ㅇㅇ
+// 연결리스트 중복 단어 없어야함 
+// 첫문자 그룹핑 <- 연결리스트
+
+struct node {
+	char *word;
+	int count; // 반복수
+	struct node *next;
+};
+
+struct node * word_lists[26]; // word_lists 주소 *node의 첫주소*  -> head
+
+void add_after(char *words); // 노드 추가
+
+char *Bbaam[BUFFER_SIZE]; // ignore 불러올 배열
+
+int main() {
+
+	// 초기화
+	for (int i = 0; i < 27; i++) {
+		word_lists[i] = (node *)malloc(sizeof(node));
+		word_lists[i]->next = NULL; // 첫번째 노드 주소 널
+		word_lists[i]->word = NULL; // 단어도 널
+	}
+
+	// ignore 단어 저장
+	int j = 0;
+	char buffer2[20];
+	FILE * fp2 = fopen("ignore.txt", "r");
+	while (fscanf(fp2, "%s", buffer2) != EOF) {
+		Bbaam[j++] = strdup(buffer2);
+	}
+	j--;
+	fclose(fp2);
+
+	// harry 받아와서 점검시작
+	FILE * fp1 = fopen("harry.txt", "r");
+	char buffer1[20];
+
+	int check;
+	while (fscanf(fp1, "%s", buffer1) != EOF) {
+		check = -1;
+		if (strlen(buffer1) < 3)
+			continue;
+		for (int i = 0; i <= j; i++) {
+			if (strcmp(buffer1, Bbaam[i]) == 0) { check = 2; break; }
+		}
+		if (check == 2)
+			continue;
+		// 길이 2 이하인 것, ignore에 있는 것 제외
+		add_after(buffer1);
+
+	}
+	fclose(fp1);
+
+	for (int i = 0; i < 26; i++) {
+		node *q = word_lists[i];
+		printf("%c로 시작하는 단어\n\n", i + 'a');
+		while (q != NULL) {
+			printf("%s : %d \n", q->word, q->count);
+			q = q->next;
+		}
+		printf("\n");
+	}
+
+}
+
+void add_after(char *words) {
+	int check = words[0] - 'a';
+	node *p = word_lists[check]; // 첫번째 주소
+	node *q = NULL;
+
+	node * New = (node *)malloc(sizeof(node));
+	New->word = strdup(words);
+	if (p->word == NULL&&p->next == NULL) { // 첫번째일 때 
+		p->word = New->word;
+		(p->count) = 1;
+		free(New);
+		return;
+	}
+
+	while (p != NULL&&strcmp(p->word, New->word) <= 0) {
+		if (strcmp(p->word, New->word) == 0) {
+			(p->count)++;
+			free(New);
+			return;
+		}
+		q = p;
+		p = p->next;
+	}
+
+	if (q == NULL) { // 앞으로 들어올 때
+		New->next = p;
+		word_lists[check] = New;
+		New->count = 1;
+		return;
+	}
+	q->next = New;
+	New->next = p;
+	(New->count) = 1;
+	return;
+
+}

@@ -1,0 +1,101 @@
+1번
+
+// 255_asdfasdf.12.024.54
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define size 50
+
+int main() {
+	char IP[size];
+
+	scanf("%s", IP);
+	char *ip;
+	ip = strtok(IP, ".");
+	int save;
+	while (ip!=NULL) {
+		save = atoi(ip);
+		if (save > 255 || save < 0) {
+			printf("NO");
+			return 0;
+		}
+		ip = strtok(NULL, ".");
+	}
+	printf("YES");
+}
+
+2번
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 80
+
+int main() {
+
+	FILE  *fp1 = fopen("harry.txt", "r");
+	FILE  *fp2 = fopen("aligned.txt", "w");
+
+	char ch; //단어 력
+	char buffer[MAX]; //입력파일 한 줄
+	char * words[MAX]; //출력파일 한 줄
+	char *token;  //토큰
+
+	int words_i = 0, length = 0; //단어개수&글자수
+	int index = 0; //입력파일 index
+	int flag = 0;
+	while (feof(fp1) == 0) //한단어씩 입력받는다
+	{
+		if (flag == 1) {
+			index = 0;
+			flag = 0;
+		}
+		fscanf(fp1, "%c", &ch);
+		buffer[index++] = ch; //buffer라는 배열을 만들어서 저장함 -> 입력파일의 한 줄
+
+		if (ch == '\n') { //줄바꿈 문자가 나올 때 
+			flag = 1;
+			buffer[index - 1] = '\0'; //입력파일에서의 한 줄을 구분해주기 위해 널문자를 넣어서 끝을 구분해줌
+
+			token = strtok(buffer, " "); //-> 입력 파일의 한 줄이 끝났을 때 strtok 로 단어부터 나눠줌
+
+			if (token == NULL) { //연속 줄바꿈문자를 받았따면
+				for (int i = 0; i < words_i; i++)
+					fprintf(fp2, "%s ", words[i]);
+				fprintf(fp2, "\n\n");
+				words_i = 0;
+				length = 0;
+			}
+
+			else { //아니라면
+				while (token != NULL) { //입력파일의 한 줄을 나눔
+					length += strlen(token) + 1; //출력파일의 한 줄의 단어 개수
+					words[words_i++] = strdup(token); //출력파일의 한 줄 단어 복사
+					int i;
+
+					if (length - 1 > 80) { //만약 length가 80보다 커지면
+						length -= strlen(token) + 2; //아까 마지막에도 공백 넣어놨기 때뮨에,, -2함
+						for (i = 0; i < 80 - length; i++)
+							fprintf(fp2, "%s  ", words[i]); // 계속 words 출력
+						for (int j = i; j < words_i - 2; j++) //여기에 그 다음 것도 저장됐을 것이므로 1 뺌
+							fprintf(fp2, "%s ", words[j]);
+						fprintf(fp2, "%s", words[words_i - 2]);
+						fprintf(fp2, "\n"); //줄바꿈
+						length = strlen(token) + 1; //length 다시
+						words_i = 0; //초기화
+						words[words_i++] = strdup(token); //다시 복사
+					}
+					token = strtok(NULL, " "); //출력파일 한 줄 나눠줌
+				}
+			}
+
+		}
+	}
+
+
+	fclose(fp1);
+	fclose(fp2);
+
+}

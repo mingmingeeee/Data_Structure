@@ -1,0 +1,200 @@
+1번
+
+#include <stdio.h>
+#include <string.h>
+#define MAX 100
+
+// 재귀함수이기 때문에 앞 뒤 비교하고 문자열을 앞 뒤 하나 빼서 비교한다.
+
+int palindrome(char *h, int start, int end);
+
+int main() {
+	char ch[MAX];
+	while (1) {
+		scanf("%s", ch);
+		if (palindrome(ch, 0, strlen(ch) - 1)) {
+			printf("회문입니다.\n");
+		}
+	}
+
+}
+
+int palindrome(char *h,int start, int end) {
+
+	if (end <= start)	// 종점
+		return 1;
+
+	else if (h[start] != h[end]) {
+		printf("회문이 아닙니다.\n");
+		return 0;
+	}
+
+	else return palindrome(h, start + 1, end - 1);
+
+}
+
+2번
+
+#include <stdio.h>
+#include <string.h>
+#define MAX 100
+
+int compare(char *str1, char *str2);
+
+int main() {
+
+	char *str[MAX];
+	char chacha[MAX];
+	int a = 0;
+
+	while (1) {
+
+		scanf("%s", chacha);
+		int i = a - 1;
+
+		if (strcmp(chacha, "exit") == 0) {
+			for (int j = 0; j < a; j++)
+				printf("%s \n", str[j]);
+			return 0;
+		}
+		
+		while (i >= 0 && compare(chacha, str[i]) == -1) {
+			str[i + 1] = str[i];
+			i--;
+		}
+		str[i + 1] = strdup(chacha);
+
+		a++;
+
+	}
+
+}
+
+
+int compare(char *str1, char *str2) {
+
+	// &str은 주소, *str은 포인터가 가리키는 단어 하나를 나타냄. 
+
+	if (*str1 != *str2) {
+		if (*str1 > *str2)	// str1이 순서가 느릴 때
+			return 1;
+		else if (*str1 < *str2)	// str1이 순서가 빠를 때
+			return -1;
+	}
+
+	else {
+		if (*str1 == '\0' && *str2 == '\0')
+			return 0;
+
+		else
+			compare(str1 + 1, str2 + 1);
+	}
+
+}
+
+// 공백은 아스키코드가 제일 큼. 
+// 사실 내가 공백도 잡아줘야 하는데 귀찮아서 안넣음.
+
+
+3번
+
+#include <stdio.h>
+#define MAX 100
+
+int recursion(int *data, int start, int end, int K);
+
+int count = 0;
+
+int main() {
+
+	int data[MAX];
+	int N, K;
+
+	scanf("%d", &N);
+
+	for (int i = 0; i < N; i++)
+		scanf("%d", &data[i]);
+
+	scanf("%d", &K);
+
+	int start = 0, end = N - 1;
+	int count = 0;
+
+
+	int c = recursion(data, start, end, K);
+
+
+	printf("%d\n", c);
+
+}
+
+int recursion(int *data, int start, int end, int K) {
+
+	if (start < end) {
+		int sum = data[start] + data[end];
+
+		if (sum > K) recursion(data, start, end - 1, K);
+
+		else if (sum < K) recursion(data, start + 1, end, K);
+
+		else {
+			count++;
+			recursion(data, start + 1, end - 1, K);
+		}
+	}
+
+	else return count;
+
+}
+
+4번
+
+#include <stdio.h>
+#define MAX 100
+
+int floor(int *data, int end, int K);
+int ceiling(int *data, int start, int end, int K);
+
+
+int main() {
+
+	int data[MAX];
+	int N, K;
+
+	scanf("%d", &N);
+
+	for (int i = 0; i < N; i++)
+		scanf("%d", &data[i]);
+
+	scanf("%d", &K);
+
+	int a = floor(data, N - 1, K);
+	int b = ceiling(data, 0, N - 1, K);
+
+
+	printf("%d\n%d\n", a, b);
+
+}
+
+int floor(int *data, int end, int K) {
+
+	if (end < 0) return -1;
+
+	else {
+		if (data[end] <= K) return data[end];
+		else floor(data, end - 1, K);
+	}
+
+}
+
+
+int ceiling(int *data, int start, int end, int K) {
+
+	if (start > end) return -1;
+
+	else {
+		if (data[start] >= K) return data[start];
+		else ceiling(data, start + 1, end, K);
+	}
+
+}

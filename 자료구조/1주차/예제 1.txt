@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER_SIZE 20
+
+int main() {
+
+	char buffer[BUFFER_SIZE];
+	while (1) {
+		printf("$ ");
+		fgets(buffer, BUFFER_SIZE, stdin);
+
+		// fgets( ★ 읽어올 데이터를 저장할 버퍼 ★, ★ 버퍼의 크기 ★, 파일포인터 - 키보드: ★ stdin <항상> ★ )
+		// 이 거슨 줄이 바뀌어서 나오는데 이 때, 줄바꿈 문자 까지 읽어서 버퍼에 저장을 해주기 때문에
+		// 글자 수가 늘어난답 ....  -> 라인 캐릭터를 포함한다 ! ! ! 
+
+		buffer[strlen(buffer) - 1] = '\0'; 
+
+		// 마지막을 정해주어서 <널캐릭터로 바꿔주어서> 마지막을 정해준다.
+		// 계속 돌면서 버퍼에 남아있는 것을 계속 출력한다.
+		// 버퍼 사이즈를 초과하면 다시 입력ㅎㅏ게 해보쟈 언젠간..
+
+		printf("%s:%d\n", buffer, strlen(buffer));
+	}
+
+}
+
+// scanf의 단점: 10바이트를 메모리로 지정해줘도 그 범위를 벗어나서 그보다 더한 메모리를 써버림
+// gets도 똑같은 단점이 있다..... 그럼 무엇을 써야 하나 ?!?!?!? 으잉 ?!?!?!?!
+// .
+// .
+// .
+// ★ ★ ★ fgets를 써라 꼮 !!! ★ ★ ★
+
+
+
+
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BUFFER_SIZE 20
+
+int read_line(char str[], int limit);
+
+int main() {
+
+	char buffer[BUFFER_SIZE];
+	while (1) {
+		printf("$ ");
+		read_line(buffer, BUFFER_SIZE);
+		printf("%s:%d\n", buffer, strlen(buffer));
+	}
+
+}
+
+int read_line(char str[], int limit) {
+	int ch, i = 0;
+
+	 //getchar : 한 문자를 읽는 것
+	 //getchar의 리턴 타입은 int이다 !! 
+	while ((ch = getchar()) != '\n') // - > '\n' :: 뉴 라인 캐릭터 라고 지칭함
+		if (i < limit)
+			str[i++] = ch;
+
+	//while ((i < limit && ch = getchar()) != '\n') -> 탈출 조건이 두개가 되어서 다시 뒷부분을 읽는다. 
+
+	str[i] = '\0';
+
+	return i;
+}

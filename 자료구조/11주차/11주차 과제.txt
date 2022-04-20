@@ -1,0 +1,59 @@
+1번
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int queens(int i);
+bool check(int i);
+int n;
+int count = 0;
+int col[15] = { 0, }; // 0으로 초기화 -> 1열 1행 이런식으로 갈 것임
+
+// col [n] -> n: 행
+// 열에 들어갈 것을 찾아보는 것
+
+int main() {
+
+	printf("N=1,2,...15\nN입력:");
+	scanf("%d", &n);
+
+	queens(0);
+	
+	printf("해의 개수: %d", count);
+}
+
+int queens(int i) {
+
+	if (check(i)) { // 대각선&직선 검사해서 아무 그게 없다면
+		if (i == n) count++; 
+		// 정상적으로 아무것도 안걸리고 n까지 도달한다면 해의개수 증가
+
+		// 다시
+		else {
+			for (int j = 1; j <= n; j++) {
+				col[i + 1] = j;
+				queens(i + 1);
+			}
+		}
+	}
+
+	return 0;
+
+}
+
+
+// 대각선&직선 검사
+bool check(int i) {
+	int j = 1;
+
+	// i랑 j처음부터 검사
+	while (j < i) {
+		if (col[i] == col[j] || abs(col[i] - col[j]) == abs(i - j)) {
+			return false;
+		}
+		j++;
+	}
+
+	return true;
+}
+

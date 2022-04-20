@@ -1,0 +1,15 @@
+﻿  library.cpp
+c:\users\kangminjeong\source\repos\project248\library.cpp(45): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(440): note: 'strtok' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(49): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(536): note: 'strdup' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(51): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(440): note: 'strtok' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(55): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(536): note: 'strdup' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(57): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(440): note: 'strtok' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(61): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17134.0\ucrt\string.h(536): note: 'strdup' 선언을 참조하십시오.
+c:\users\kangminjeong\source\repos\project248\library.cpp(377): warning C4477: 'printf' : 서식 문자열 '%s'에 'char *' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'Artist *'입니다.
+  Project248.vcxproj -> C:\Users\KANGMINJEONG\source\repos\Project248\Debug\Project248.exe

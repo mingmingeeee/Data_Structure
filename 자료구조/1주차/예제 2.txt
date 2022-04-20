@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> // white space 문자인지 검사하는 isspace 함수를 제공
+#define BUFFER_SIZE 20
+
+int read_line_with_compression(char compressed[], int limit);
+
+int main() {
+
+	char line[80];
+
+	while (1) {
+		printf("$ ");
+		int length = read_line_with_compression(line, 80);
+		printf("%s:%d\n", line, length);
+	}
+	return 0;
+
+}
+
+int read_line_with_compression(char compressed[], int limit) {
+	int ch, i = 0;
+
+	while ((ch = getchar()) != 'n') {
+		if (i < limit - 1 && (!isspace(ch) || i > 0 && !isspace(compressed[i - 1])))
+			compressed[i++] = ch;
+		// limit-1 하는 이유 : 이 다음에 널 캐릭터를 저장해 줄 공간을 만들기 위해
+		// isspace : 눈에 보이지 않는 문자 (공백) 이냐 아니냐 를 검사해주는 것
+		// ch = ' ' 와 같은 의미로 쓰임 !
+	}
+
+	if (i > 0 && isspace(compressed[i - 1]))
+		i--;
+	compressed[i] = '\0';
+	return 1;
+}

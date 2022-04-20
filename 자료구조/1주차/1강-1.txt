@@ -1,0 +1,74 @@
+/* 포인터와 배열 */
+
+
+/*
+배열의 이름은 배열의 **시작 주소**를 저장하는 포인터 변수이다. 
+(단, 그 값을 변경할 수는 없다!!!!)
+
+a가 a[0]을 저장하는 포인터 변수인 것은 맞지만, 
+이 포인터 변수는 보통의 포인터 변수와 같이 수정할 수 는 없다.
+*/
+
+#include <stdio.h>
+
+int calcualte_sum(int *array);
+
+int main() {
+
+	int sum, i, average;
+	int num[10];
+	for (i = 0; i < 10; i++)
+		scanf("%d", &num[i]);
+	sum = calcualte_sum(num); // 주는 거는 처음 값이다.
+	average = sum / 10;
+	printf("%d\n", average);
+	return 0;
+
+}
+
+int calcualte_sum(int *array) { 
+	// 배열의 이름은 그 첫번째 주소를 저장하는 변수이다.
+	// 포인터 변수가 배열인 것처럼 사용해도 아무 문제 없이 동작한다.
+	int sum, i;
+	sum = 0;
+	for (i = 0; i < 10; i++)
+		sum = sum + array[i];
+		// sum += *(array+i);
+	return sum;
+}
+
+// *a와 a[0]은 동일한 의미이다.
+// *a는 a가 가지고 있는 주소의 값이기 때문이다.
+// a[1]은 *(a+1)과 동일하고, 1000이 1001이 되지 않고 1004가 된다. 
+// -> 그냥 그 다음 정수의 주소가 되도록 c언어가 제공을 한다. 
+// a[i]는 *(a+i)와 동일하다.
+
+#include <stdio.h>
+
+int main() {
+
+	int data[] = { 1,2,3 }; // 4바이트
+	char data2[] = { 'a','b','c' }; // 1바이트
+	long long data3[] = { 1,2,3 }; // 8바이트
+
+	int *p = &data[0]; //data의 첫번째 주소의 값
+	char *q = &data2[0];
+	long long *r = &data3[0];
+
+	printf("%d %x\n", p, p);
+	// p의 포인터 값 자체를 출력 -> 똑같은 변수를 하나는 십진수, 하나는 십육진수로 출력
+	printf("%d %x\n", p + 1, p + 1);
+	printf("%d %x\n", p + 2, p + 2);
+
+	printf("%d %x\n", q, q);
+	printf("%d %x\n", q + 1, q + 1);
+	printf("%d %x\n", q + 2, q + 2);
+
+	printf("%d %x\n", r, r);
+	printf("%d %x\n", r + 1, r + 1);
+	printf("%d %x\n", r + 2, r + 2);
+
+
+	// 형 타입과 맞게 +1의 주소가 이동한다.
+	// 예: char - 1, long long - 8, int - 4
+}

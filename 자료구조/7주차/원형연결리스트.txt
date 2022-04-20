@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/*
+이중 연결리스트 : next와 prev 각각의 다음과 이 전 노드의 주소를 저장함
+head와 tail을 만들어서 맨 첫번째 노드와 맨 마지막 노드를 저장한다.
+-> 쓰는 이유: 연결리스트를 양방향으로 사용하기 위해서 
+*/
+
+struct node {
+	char *data;
+	struct node *next;
+	struct node *prev;
+};
+
+typedef struct node Node;
+
+Node *head;
+Node *tail;
+int size = 0;
+
+// 어떤 노드 앞쪽에 넣기
+void add(Node *p) {
+	Node *new_node = (Node *)malloc(sizeof(Node));
+	new_node->data = "Sharon";
+	new_node->next = p;
+	new_node->prev = p->prev;
+	p->prev->next = new_node;
+	p->prev = new_node;
+}
+
+void remove(Node *p) {
+	// 그냥 p가 가리키는 노드 삭제
+	p->prev->next = p->next;
+	p->next->prev = p->prev;
+}
+
+void add_after(Node *pre, char *item) {
+	Node *new_node = (Node *)malloc(sizeof(Node));
+	new_node->data = item;
+	new_node->prev = NULL;
+	new_node->next = NULL;
+
+	// head == NULL : 노드가 하나도 없는 리스트이다.
+	if (pre == NULL && head == NULL) {
+		head = new_node;
+		tail = new_node;
+	}
+	
+	// pre==NULL -> head!=NULL : 연결리스트의 맨 앞에 넣으라는 뜻이다.
+	else if (pre == NULL) {
+		new_node->next = head;
+		head->prev = new_node;
+		head = new_node;
+	}
+
+	// pre==tail : 맨 마지막 뒤에 넢으라는 뜻이다.
+	else if (pre == tail) {
+		new_node->next = tail;
+		tail->next = new_node;
+		tail = new_node;
+	}
+
+	// 어느의 경우도 아닌 그냥 노드를 추가하는 것
+	// 어떤 노드 뒤쪽에 넣기
+	else { 
+		new_node->prev = pre;
+		new_node->next = pre->next;
+		pre->next->prev = new_node;
+		pre->next = new_node;
+	}
+
+	// 노드 개수 증가
+	size++; 
+}
+
+// p가 가리키는 노드 삭제하기
+
+/*
+1. p가 유일한 노드인 경우
+2. p가 head인 경우
+3. p가 tail인 경우
+4. 그밖의 일반적인 경우
+
+--> 과제
+*/
+void remove(Node *p) {
+}
+
+// 정렬되어있는 리스트에 새로운 노드를 삽입할 때
+
+/*
+1. empty list일 때
+2. p가 head가 되는 경우
+3. p가 tail이 되는 경우
+4. 그 밖의 일반적인 경우
+
+--> 과제
+*/
+
+void add_ordered_list(char *item) {
+	// 뒤에서부터 앞으로 순회를 하면서 큰 동안 순회한다.
+	Node *p = tail;
+	while (p != NULL && strcmp(item, p->data) < 0)
+		p = p->prev;
+	add_after(p, item);
+}
+
+int main() {
+
+
+
+}

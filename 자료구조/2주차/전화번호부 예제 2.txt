@@ -1,0 +1,171 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h> // white space 문자인지 검사하는 isspace 함수를 제공
+
+#define CAPACITY 100
+#define BUFFER_SIZE 100
+
+/*
+add : 새로운 사람 추가
+
+load : 전화번호부 데이터 파일에 저장된 것을 읽어옴
+
+find : 이름으로 전화번호 검색
+
+status : 현재 전화번호부에 저장된 모든 사람 출력
+
+delete : 전화번호부에서 삭제
+
+save : 파일에 저장 -> 처음과 다른 파일에 저장하면 그 별도의 파일에 덮어쓰게 됨 
+
+exit : 전화번호부 프로그램 종료
+*/
+
+/*
+directory.txt 파일에 저장
+*/
+
+
+
+char * names[CAPACITY];		/* names */
+char * numbers[CAPACITY];	/* phone numbers 051-234-6787 */
+int n = 0;					/* number of people in phone directory */
+
+void add();
+void find();
+void status();
+void remove();
+void save();
+void load();
+int search(char * name);
+
+int main() {
+	char command[BUFFER_SIZE];
+	while (1) {
+		printf("$ ");
+		scanf("%s", command);
+
+		if (strcmp(command, "read") == 0)
+			load();
+		else if (strcmp(command, "add") == 0) // strcmp함수는 두 문자열이 동일하면 0을 반환한다.
+			add();
+		else if (strcmp(command, "find") == 0)
+			find();
+		else if (strcmp(command, "status") == 0)
+			status();
+		else if (strcmp(command, "delete") == 0)
+			remove();
+		else if (strcmp(command, "save") == 0)
+			save();
+		else if (strcmp(command, "exit") == 0)
+			break;
+	}
+	return 0;
+}
+
+void add() {
+	char buf1[BUFFER_SIZE], buf2[BUFFER_SIZE];
+	scanf("%s", buf1);
+	scanf("%s", buf2);
+
+	int i = n - 1;
+	while (i >= 0 && strcmp(names[i], buf1) > 0) { // buf1이 names[i]보다 크면 음수를, 작으면 양수를 반환함
+		names[i + 1] = names[i];
+		numbers[i + 1] = numbers[i];
+		i--;
+	}
+	names[i + 1] = strdup(buf1);
+	names[i + 1] = strdup(buf2);
+	n++;
+	printf("%s was added succeefully. \n", buf1);
+}
+
+void find() {
+	char buf[BUFFER_SIZE];
+	scanf("%s", buf);
+
+	int index = search(buf);
+	if (index == -1)
+		printf("No person named '%s' exists.\n", buf);
+	else
+		printf("%s\n", numbers[index]);
+}
+
+
+void status() {
+	int i;
+	for (i = 0; i < n; i++)
+		printf("%s	%s\n", names[i], numbers[i]);
+	printf("Total %d persons/ \n", n);
+}
+
+void remove() {
+	char buf[BUFFER_SIZE];
+	scanf("%s", buf);
+
+	int index = search(buf); /* returns -1 if not exists */
+	if (index == -1) {
+		printf("No person named '%s' exists. \n", buf);
+		return;
+	}
+	int j = index;
+	for (; j < n - 1; j++) { // n-1보다 작은 이유는 j+1 떄문이다. 중요 !!!!!!!!!
+		names[j] = names[j + 1];
+		numbers[j] = numbers[j + 1];
+	}
+	printf("No person named '%s' exists.\n", buf);
+}
+
+void load() {
+	char fileName[BUFFER_SIZE];
+	char buf1[BUFFER_SIZE];
+	char buf2[BUFFER_SIZE];
+
+	scanf("%s", fileName);
+
+	FILE *fp = fopen(fileName, "r");
+	if (fp == NULL) { // 파일을 여는데 실패한 것
+		printf("Open failed.\n");
+		return;
+	}
+
+	// 파일 포인터, 포맷스트링, 진짜 읽어올 변수
+	while ((fscanf(fp, "%s", buf1) != EOF)) { //이름 읽음
+		fscanf(fp, "%s", buf2); //전화번호 읽음
+		names[n] = strdup(buf1);
+		numbers[n] = strdup(buf2);
+		n++;
+	}
+	fclose(fp);
+}
+
+void save() {
+	int i;
+	char fileName[BUFFER_SIZE];
+	char tmp[BUFFER_SIZE];
+
+	scanf("%s", tmp);		// as
+	scanf("%s", fileName);	// save할 파일 이름
+
+	FILE *fp = fopen(fileName, "w");
+	if (fp == NULL) {
+		printf("Open failed.\n");
+		return;
+		// 원래는 없으면 만들어줌
+	}
+	for (i = 0; i < n; i++) {
+		fprintf(fp, "%s %s\n", names[i], numbers[i]);
+	}
+	fclose(fp);
+}
+
+int search(char *name) {
+	int i;
+	for (i = 0; i < n; i++) {
+		if (strcmp(name, names[i]) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}

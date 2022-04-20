@@ -1,0 +1,12 @@
+
+-- 실제 strdup --
+
+char * strdup(char *s) {
+	char *p; // 배열의 시작 주소 저장
+	p = (char *)malloc(strlen(s) + 1);
+	// malloc으로 얼마만큼 길이 만들고
+	// 그 시작 주소를 p로 정함
+	if (p != NULL)
+		strcpy(p, s);
+	return p;
+}
